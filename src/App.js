@@ -46,6 +46,52 @@ function App() {
 		img.src = board.current.toDataURL('image/png')
 	}
 
+	const handleTouchStart = e => {
+		e.preventDefault()
+		const mouse = e.nativeEvent
+		ctx.lineWidth = 25
+		ctx.lineJoin = 'round'
+		ctx.lineCap = 'round'
+		ctx.strokeStyle = '#123'
+		ctx.moveTo(
+			mouse.touches[0].clientX - mouse.target.offsetLeft,
+			mouse.touches[0].clientY - mouse.target.offsetTop
+		)
+		setIsDrawing(true)
+	}
+
+	const handleTouchMove = e => {
+		if (isDrawing) {
+			e.preventDefault()
+			const mouse = e.nativeEvent
+			ctx.lineTo(
+				mouse.touches[0].clientX - mouse.target.offsetLeft,
+				mouse.touches[0].clientY - mouse.target.offsetTop
+			)
+			ctx.stroke()
+		}
+	}
+
+	const handleTouchEnd = e => {
+		e.preventDefault()
+		setIsDrawing(false)
+		let img = new Image()
+		img.onload = async () => {
+			ctx.drawImage(img, 0, 0, 28, 28)
+			const data = ctx.getImageData(0, 0, 28, 28).data
+			const input = []
+			for (let i = 0; i < data.length; i += 4) {
+				input.push(data[i + 2] / 255)
+			}
+			await predict(input)
+		}
+		img.src = board.current.toDataURL('image/png')
+	}
+
+	const handleTouchCancel = e => {
+		e.preventDefault()
+	}
+
 	const handleClearBoard = () => {
 		ctx.clearRect(0, 0, board.current.width, board.current.height)
 		ctx.beginPath()
@@ -80,48 +126,6 @@ function App() {
 		)
 	}
 
-	const handleTouchStart = e => {
-		const mouse = e.nativeEvent
-		console.log(mouse.touches[0])
-		console.log(mouse)
-		console.log(mouse.target.offsetTop)
-		ctx.lineWidth = 25
-		ctx.lineJoin = 'round'
-		ctx.lineCap = 'round'
-		ctx.strokeStyle = '#123'
-		ctx.moveTo(
-			mouse.touches[0].clientX - mouse.target.offsetLeft,
-			mouse.touches[0].clientY - mouse.target.offsetTop
-		)
-		setIsDrawing(true)
-	}
-
-	const handleTouchMove = e => {
-		if (isDrawing) {
-			const mouse = e.nativeEvent
-			ctx.lineTo(
-				mouse.touches[0].clientX - mouse.target.offsetLeft,
-				mouse.touches[0].clientY - mouse.target.offsetTop
-			)
-			ctx.stroke()
-		}
-	}
-
-	const handleTouchEnd = e => {
-		setIsDrawing(false)
-		let img = new Image()
-		img.onload = async () => {
-			ctx.drawImage(img, 0, 0, 28, 28)
-			const data = ctx.getImageData(0, 0, 28, 28).data
-			const input = []
-			for (let i = 0; i < data.length; i += 4) {
-				input.push(data[i + 2] / 255)
-			}
-			await predict(input)
-		}
-		img.src = board.current.toDataURL('image/png')
-	}
-
 	return (
 		<div>
 			<h1 className='text-teal-400 text-center py-5 font-bold'>
@@ -138,7 +142,9 @@ function App() {
 					onTouchStart={e => handleTouchStart(e)}
 					onTouchMove={e => handleTouchMove(e)}
 					onTouchEnd={e => handleTouchEnd(e)}
+					onTouchCancel={e => handleTouchCancel(e)}
 					className='border-2 mr-5'
+					style={{ touchAction: 'none' }}
 				></canvas>
 				<button
 					className='bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded mb-4 mt-4'
@@ -154,7 +160,7 @@ function App() {
 					{scoresGraph}
 				</div>
 			</div>
-			<footer className='fixed left-0 bottom-0 text-center w-full text-gray-400'>
+			<footer className='fixed left-0 bottom-0 text-center w-full text-gray-400 mt-2'>
 				<p>BKHCM - Phúc Hưng</p>
 			</footer>
 		</div>
