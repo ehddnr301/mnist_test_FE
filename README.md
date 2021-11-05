@@ -1,1 +1,1 @@
-Tensorflowjs + React
+React + Mnist
