@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import * as tf from '@tensorflow/tfjs'
 import './styles/App.css'
+import axios from 'axios'
 
 function App() {
 	const board = useRef(null)
@@ -15,10 +16,10 @@ function App() {
 
 	const handleMouseDown = e => {
 		const mouse = e.nativeEvent
-		ctx.lineWidth = 25
+		ctx.lineWidth = 7
 		ctx.lineJoin = 'round'
 		ctx.lineCap = 'round'
-		ctx.strokeStyle = '#123'
+		ctx.strokeStyle = 'rgb(255,255,255)'
 		ctx.moveTo(mouse.offsetX, mouse.offsetY)
 		setIsDrawing(true)
 	}
@@ -39,58 +40,13 @@ function App() {
 			const data = ctx.getImageData(0, 0, 28, 28).data
 			const input = []
 			for (let i = 0; i < data.length; i += 4) {
-				input.push(data[i + 2] / 255)
+				input.push((data[i + 2] + data[i + 1] + data[i] + data[i - 1] + data[i - 2]) / 5)
 			}
 			await predict(input)
 		}
 		img.src = board.current.toDataURL('image/png')
 	}
 
-	const handleTouchStart = e => {
-		e.preventDefault()
-		const mouse = e.nativeEvent
-		ctx.lineWidth = 25
-		ctx.lineJoin = 'round'
-		ctx.lineCap = 'round'
-		ctx.strokeStyle = '#123'
-		ctx.moveTo(
-			mouse.touches[0].clientX - mouse.target.offsetLeft,
-			mouse.touches[0].clientY - mouse.target.offsetTop
-		)
-		setIsDrawing(true)
-	}
-
-	const handleTouchMove = e => {
-		if (isDrawing) {
-			e.preventDefault()
-			const mouse = e.nativeEvent
-			ctx.lineTo(
-				mouse.touches[0].clientX - mouse.target.offsetLeft,
-				mouse.touches[0].clientY - mouse.target.offsetTop
-			)
-			ctx.stroke()
-		}
-	}
-
-	const handleTouchEnd = e => {
-		e.preventDefault()
-		setIsDrawing(false)
-		let img = new Image()
-		img.onload = async () => {
-			ctx.drawImage(img, 0, 0, 28, 28)
-			const data = ctx.getImageData(0, 0, 28, 28).data
-			const input = []
-			for (let i = 0; i < data.length; i += 4) {
-				input.push(data[i + 2] / 255)
-			}
-			await predict(input)
-		}
-		img.src = board.current.toDataURL('image/png')
-	}
-
-	const handleTouchCancel = e => {
-		e.preventDefault()
-	}
 
 	const handleClearBoard = () => {
 		ctx.clearRect(0, 0, board.current.width, board.current.height)
@@ -99,15 +55,26 @@ function App() {
 	}
 
 	const predict = async input => {
-		const MODEL_URL = process.env.PUBLIC_URL + '/models/model.json'
-		const model = await tf.loadLayersModel(MODEL_URL)
-		const formattedData = tf.tensor(input).reshape([1, 28 * 28])
-		let scores = await model.predict(formattedData).array()
-		scores = scores[0]
-		const maxScore = Math.max(...Object.values(scores))
-		const prediction = scores.indexOf(maxScore)
-		setScoreGraph(buildScoreGraph(scores))
-		setPrediction(prediction)
+		let stringify_ipt = JSON.stringify(input)
+		stringify_ipt = stringify_ipt.replace('null',0)
+		console.log(stringify_ipt)
+		console.log(typeof stringify_ipt)
+		const r = await axios.put(
+			'http://127.0.0.1:8000/predict/mnist',
+			{
+				mnist_num : stringify_ipt
+			}
+		)
+		console.log(r)
+		// const MODEL_URL = process.env.PUBLIC_URL + '/models/model.json'
+		// const model = await tf.loadLayersModel(MODEL_URL)
+		// const formattedData = tf.tensor(input).reshape([1, 28 * 28])
+		// let scores = await model.predict(formattedData).array()
+		// scores = scores[0]
+		// const maxScore = Math.max(...Object.values(scores))
+		// const prediction = scores.indexOf(maxScore)
+		// setScoreGraph(buildScoreGraph(scores))
+		// setPrediction(prediction)
 	}
 
 	const buildScoreGraph = scores => {
@@ -139,10 +106,6 @@ function App() {
 					onMouseDown={e => handleMouseDown(e)}
 					onMouseMove={e => handleMouseMove(e)}
 					onMouseUp={handleMouseUp}
-					onTouchStart={e => handleTouchStart(e)}
-					onTouchMove={e => handleTouchMove(e)}
-					onTouchEnd={e => handleTouchEnd(e)}
-					onTouchCancel={e => handleTouchCancel(e)}
 					className='border-2 mr-5'
 					style={{ touchAction: 'none' }}
 				></canvas>
