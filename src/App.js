@@ -73,7 +73,7 @@ function App() {
 				}
 			}
 		} = await axios.put(
-			'http://127.0.0.1:8000/predict/mnist',
+			'http://mlops-service:8000/predict/mnist',
 			{
 				mnist_num : stringify_ipt
 			}
