@@ -21,7 +21,7 @@ function App() {
 
 	const handleMouseDown = e => {
 		const mouse = e.nativeEvent
-		ctx.lineWidth = 7
+		ctx.lineWidth = 15
 		ctx.lineJoin = 'round'
 		ctx.lineCap = 'round'
 		ctx.strokeStyle = 'rgb(255,255,255)'
@@ -155,10 +155,11 @@ function App() {
 					onMouseDown={e => handleMouseDown(e)}
 					onMouseMove={e => handleMouseMove(e)}
 					onMouseUp={handleMouseUp}
-					className='border-2 mr-5'
+					className='border-2 mr-5 bg-black'
 					style={{ touchAction: 'none' }}
 				></canvas>
 				<canvas
+						className='bg-black'
 						ref={board2}
 						width={28}
 						height={28}
