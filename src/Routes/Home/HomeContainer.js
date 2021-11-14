@@ -66,7 +66,7 @@ const HomeContainer = () => {
     console.log(age, sex, bmi, children, smoker, region);
     const {
       data: { result },
-    } = await axios.put(`/predict/insuranc`, {
+    } = await axios.put(`/predict/insurance`, {
       age: age,
       sex: sex,
       bmi: parseFloat(bmi),
@@ -89,7 +89,7 @@ const HomeContainer = () => {
         result.push(...generateRandomNumber(parseFloat(temp)));
       }
     });
-    const { data } = await axios.put("/predict/atmos", result);
+    const { data } = await axios.put("/predict/atmos_temperature", result);
 
     console.log(data);
     setResult2(data);

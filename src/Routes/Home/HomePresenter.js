@@ -56,7 +56,7 @@ const Btn = styled.button`
 const Result = styled.div`
   margin-top: 20px;
   font-size: 18px;
-  color: white;
+  color: black;
   font-weight: 600;
 `;
 
